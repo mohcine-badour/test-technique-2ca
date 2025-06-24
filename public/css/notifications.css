@@ -1,0 +1,194 @@
+/* Notification Styles */
+.new-task-highlight {
+    animation: highlightNewTask 3s ease-in-out;
+    border-left: 4px solid #28a745;
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+@keyframes highlightNewTask {
+    0% {
+        background-color: rgba(40, 167, 69, 0.3);
+        transform: translateX(-10px);
+    }
+    50% {
+        background-color: rgba(40, 167, 69, 0.1);
+        transform: translateX(0);
+    }
+    100% {
+        background-color: transparent;
+        transform: translateX(0);
+    }
+}
+
+.highlight {
+    animation: highlightTask 2s ease-in-out;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+}
+
+@keyframes highlightTask {
+    0% {
+        box-shadow: 0 0 20px rgba(40, 167, 69, 0.8);
+        transform: scale(1.02);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
+        transform: scale(1.01);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(40, 167, 69, 0.3);
+        transform: scale(1);
+    }
+}
+
+/* Task Item Styles */
+.task-item {
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    transition: all 0.3s ease;
+}
+
+.task-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.task-item h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.task-item p {
+    margin: 0 0 15px 0;
+    color: #666;
+    line-height: 1.5;
+}
+
+.task-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.task-meta span {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+/* Status Styles */
+.status.pending {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.status.in_progress {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+.status.completed {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.status.cancelled {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+/* Priority Styles */
+.priority.low {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+.priority.medium {
+    background-color: #fd7e14;
+    color: #fff;
+}
+
+.priority.high {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.due-date {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+/* Notification Toast */
+.notification-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-width: 300px;
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification-toast.success {
+    background-color: #28a745;
+}
+
+.notification-toast.info {
+    background-color: #17a2b8;
+}
+
+.notification-toast.warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.notification-toast.error {
+    background-color: #dc3545;
+}
+
+/* Pusher Connection Status */
+.pusher-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 1000;
+}
+
+.pusher-status.connected {
+    background-color: #28a745;
+    color: white;
+}
+
+.pusher-status.disconnected {
+    background-color: #dc3545;
+    color: white;
+}
+
+.pusher-status.connecting {
+    background-color: #ffc107;
+    color: #000;
+} 

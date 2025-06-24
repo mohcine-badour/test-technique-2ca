@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Events\TaskCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -104,6 +105,8 @@ class TaskController extends Controller
                 'priority' => $request->priority ?? 'medium',
                 'due_date' => $request->due_date,
             ]);
+
+            event(new TaskCreated($task));
 
             return response()->json([
                 'status' => 'success',

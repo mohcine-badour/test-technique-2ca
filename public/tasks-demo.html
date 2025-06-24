@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Démonstration Notifications Tâches</title>
+    <link rel="stylesheet" href="/css/notifications.css">
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Démonstration Notifications Tâches</h1>
+        
+        <div class="demo-section">
+            <h2>Test de Création de Tâche</h2>
+            <form id="task-form">
+                <div class="form-group">
+                    <label for="title">Titre de la tâche:</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="priority">Priorité:</label>
+                    <select id="priority" name="priority">
+                        <option value="low">Faible</option>
+                        <option value="medium" selected>Moyenne</option>
+                        <option value="high">Élevée</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="status">Statut:</label>
+                    <select id="status" name="status">
+                        <option value="pending" selected>En attente</option>
+                        <option value="in_progress">En cours</option>
+                        <option value="completed">Terminée</option>
+                        <option value="cancelled">Annulée</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="due_date">Date d'échéance:</label>
+                    <input type="datetime-local" id="due_date" name="due_date">
+                </div>
+                
+                <button type="submit">Créer la Tâche</button>
+            </form>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Liste des Tâches</h2>
+            <div id="task-list">
+                <!-- Les tâches seront affichées ici -->
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Logs des Notifications</h2>
+            <div id="notification-logs" style="background: #f5f5f5; padding: 15px; border-radius: 8px; max-height: 300px; overflow-y: auto;">
+                <!-- Les logs seront affichés ici -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Status de connexion Pusher -->
+    <div id="pusher-status" class="pusher-status disconnected">
+        Déconnecté
+    </div>
+
+    <script src="/js/pusher-client.js"></script>
+    <script>
+        // Configuration pour la démonstration
+        const DEMO_USER_ID = 1; // ID utilisateur de démonstration
+        const DEMO_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL2F1dGgvbG9naW4iLCJpYXQiOjE3NTA3NTUwODIsImV4cCI6MTc1MDc1ODY4MiwibmJmIjoxNzUwNzU1MDgyLCJqdGkiOiJnbUFEbU5hNkV1UG93eVJUIiwic3ViIjoiMSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.dWIfnHyYyZh4NsRAFq-jyYnnPWgiS6cOWpzZIXkAKdQ'; // Token de démonstration
+
+        // Initialiser le client de notification
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialiser Pusher pour la démonstration
+            window.taskNotificationClient.init(DEMO_USER_ID, DEMO_TOKEN);
+            
+            // Mettre à jour le statut de connexion
+            updateConnectionStatus();
+            
+            // Charger les tâches existantes
+            loadTasks();
+        });
+
+        // Gérer la soumission du formulaire
+        document.getElementById('task-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const taskData = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${DEMO_TOKEN}`
+                    },
+                    body: JSON.stringify(taskData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    addLog(`Tâche créée: ${result.data.task.title}`, 'success');
+                    e.target.reset();
+                } else {
+                    addLog('Erreur lors de la création de la tâche', 'error');
+                }
+            } catch (error) {
+                addLog(`Erreur: ${error.message}`, 'error');
+            }
+        });
+
+        // Charger les tâches existantes
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/tasks', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${DEMO_TOKEN}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    displayTasks(result.data.tasks);
+                }
+            } catch (error) {
+                addLog(`Erreur lors du chargement des tâches: ${error.message}`, 'error');
+            }
+        }
+
+        // Afficher les tâches
+        function displayTasks(tasks) {
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = '';
+            
+            tasks.forEach(task => {
+                const taskElement = createTaskElement(task);
+                taskList.appendChild(taskElement);
+            });
+        }
+
+        // Créer un élément de tâche
+        function createTaskElement(task) {
+            const taskDiv = document.createElement('div');
+            taskDiv.className = 'task-item';
+            taskDiv.id = `task-${task.id}`;
+            taskDiv.innerHTML = `
+                <h3>${task.title}</h3>
+                <p>${task.description || ''}</p>
+                <div class="task-meta">
+                    <span class="status ${task.status}">${task.status}</span>
+                    <span class="priority ${task.priority}">${task.priority}</span>
+                    ${task.due_date ? `<span class="due-date">${new Date(task.due_date).toLocaleDateString()}</span>` : ''}
+                </div>
+            `;
+            return taskDiv;
+        }
+
+        // Ajouter un log
+        function addLog(message, type = 'info') {
+            const logsContainer = document.getElementById('notification-logs');
+            const logEntry = document.createElement('div');
+            logEntry.style.marginBottom = '10px';
+            logEntry.style.padding = '8px';
+            logEntry.style.borderRadius = '4px';
+            logEntry.style.backgroundColor = type === 'success' ? '#d4edda' : 
+                                           type === 'error' ? '#f8d7da' : '#d1ecf1';
+            logEntry.style.color = type === 'success' ? '#155724' : 
+                                  type === 'error' ? '#721c24' : '#0c5460';
+            logEntry.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+            
+            // Limiter le nombre de logs
+            if (logsContainer.children.length > 20) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+
+        // Mettre à jour le statut de connexion
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('pusher-status');
+            
+            if (window.taskNotificationClient.pusher) {
+                const connection = window.taskNotificationClient.pusher.connection;
+                
+                connection.bind('connected', () => {
+                    statusElement.textContent = 'Connecté';
+                    statusElement.className = 'pusher-status connected';
+                    addLog('Connexion Pusher établie', 'success');
+                });
+                
+                connection.bind('disconnected', () => {
+                    statusElement.textContent = 'Déconnecté';
+                    statusElement.className = 'pusher-status disconnected';
+                    addLog('Connexion Pusher perdue', 'error');
+                });
+                
+                connection.bind('connecting', () => {
+                    statusElement.textContent = 'Connexion...';
+                    statusElement.className = 'pusher-status connecting';
+                    addLog('Tentative de connexion Pusher...', 'info');
+                });
+            }
+        }
+
+        // Override de la méthode handleTaskCreated pour la démonstration
+        const originalHandleTaskCreated = window.taskNotificationClient.handleTaskCreated;
+        window.taskNotificationClient.handleTaskCreated = function(data) {
+            addLog(`Notification reçue: ${data.message}`, 'success');
+            originalHandleTaskCreated.call(this, data);
+        };
+    </script>
+
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .demo-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #555;
+            margin-bottom: 15px;
+        }
+    </style>
+</body>
+</html> 

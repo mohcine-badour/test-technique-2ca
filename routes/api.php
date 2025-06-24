@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\BroadcastController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +20,9 @@ use App\Http\Controllers\TaskController;
 // Public routes
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
+
+// Broadcast authentication (needs special handling)
+Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate']);
 
 // Protected routes
 Route::middleware('auth:api')->group(function () {
